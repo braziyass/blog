@@ -29,6 +29,20 @@ public class BlogController {
         return ResponseEntity.ok(blogDTO);
     }
 
+    @PutMapping("/{blogId}")
+    public ResponseEntity<BlogDTO> updateBlog(@PathVariable Long blogId, @RequestBody String content, HttpServletRequest request) {
+        String token = extractToken(request);
+        BlogDTO blogDTO = blogService.updateBlog(blogId, content, token);
+        return ResponseEntity.ok(blogDTO);
+    }
+
+    @DeleteMapping("/{blogId}")
+    public ResponseEntity<Void> deleteBlog(@PathVariable Long blogId, HttpServletRequest request) {
+        String token = extractToken(request);
+        blogService.deleteBlog(blogId, token);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{blogId}/like")
     public ResponseEntity<LikeDTO> likeBlog(@PathVariable Long blogId, HttpServletRequest request) {
         String token = extractToken(request);

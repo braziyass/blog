@@ -34,6 +34,30 @@ public class BlogService {
         return toBlogDTO(blog);
     }
 
+    public BlogDTO updateBlog(Long blogId, String content, String token) {
+        User user = getUserFromToken(token);
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+
+        if (!blog.getUser().equals(user)) {
+            throw new RuntimeException("You are not authorized to update this blog");
+        }
+
+        blog.setContent(content);
+        blogRepository.save(blog);
+        return toBlogDTO(blog);
+    }
+
+    public void deleteBlog(Long blogId, String token) {
+        User user = getUserFromToken(token);
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+
+        if (!blog.getUser().equals(user)) {
+            throw new RuntimeException("You are not authorized to delete this blog");
+        }
+
+        blogRepository.delete(blog);
+    }
+
     public Like likeBlog(Long blogId, String token) {
         User user = getUserFromToken(token);
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
