@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.emsi.blog.dto.BlogDTO;
 import com.emsi.blog.dto.CommentDTO;
 import com.emsi.blog.dto.LikeDTO;
+import com.emsi.blog.dto.UserDTO;
 import com.emsi.blog.user.Comment;
 import com.emsi.blog.user.Like;
 // import com.emsi.blog.user.UserRepository;
@@ -88,6 +89,13 @@ public class BlogController {
     public ResponseEntity<List<LikeDTO>> getLikes(@PathVariable Long blogId) {
         List<LikeDTO> likes = blogService.getLikes(blogId);
         return ResponseEntity.ok(likes);
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserDTO> getUserProfile(HttpServletRequest request) {
+        String token = extractToken(request);
+        UserDTO userDTO = blogService.getUserProfile(token);
+        return ResponseEntity.ok(userDTO);
     }
 
     private String extractToken(HttpServletRequest request) {

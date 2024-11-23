@@ -6,6 +6,7 @@ import com.emsi.blog.config.JwtService;
 import com.emsi.blog.dto.BlogDTO;
 import com.emsi.blog.dto.CommentDTO;
 import com.emsi.blog.dto.LikeDTO;
+import com.emsi.blog.dto.UserDTO;
 import com.emsi.blog.user.*;
 
 import org.springframework.stereotype.Service;
@@ -147,6 +148,11 @@ public class BlogService {
                         .map(like -> new LikeDTO(like.getUser().getFirstName(), like.getUser().getLastName()))
                         .collect(Collectors.toList())
         );
+    }
+
+    public UserDTO getUserProfile(String token) {
+        User user = getUserFromToken(token);
+        return new UserDTO(user.getFirstName(), user.getLastName(), user.getEmail());
     }
 
     private BlogDTO toBlogDTO(Blog blog) {
