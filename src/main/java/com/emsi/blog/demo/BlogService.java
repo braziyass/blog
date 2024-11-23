@@ -3,11 +3,14 @@ package com.emsi.blog.demo;
 import lombok.RequiredArgsConstructor;
 
 import com.emsi.blog.config.JwtService;
+import com.emsi.blog.dto.CommentDTO;
+import com.emsi.blog.dto.LikeDTO;
 import com.emsi.blog.user.*;
 
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,14 +74,18 @@ public class BlogService {
         return commentRepository.save(comment);
     }
 
-    public List<Comment> getComments(Long blogId) {
+    public List<CommentDTO> getComments(Long blogId) {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
-        return blog.getComments();
+        return blog.getComments().stream()
+                .map(comment -> new CommentDTO(comment.getContent(), comment.getUser().getFirstName(), comment.getUser().getLastName()))
+                .collect(Collectors.toList());
     }
 
-    public List<Like> getLikes(Long blogId) {
+    public List<LikeDTO> getLikes(Long blogId) {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
-        return blog.getLikes();
+        return blog.getLikes().stream()
+                .map(like -> new LikeDTO(like.getUser().getFirstName(), like.getUser().getLastName()))
+                .collect(Collectors.toList());
     }
 
     public List<Blog> getAllBlogs() {

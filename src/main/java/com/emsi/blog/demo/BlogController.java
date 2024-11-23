@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.emsi.blog.dto.CommentDTO;
+import com.emsi.blog.dto.LikeDTO;
 import com.emsi.blog.user.Blog;
 import com.emsi.blog.user.Comment;
 import com.emsi.blog.user.Like;
@@ -28,10 +30,11 @@ public class BlogController {
     }
 
     @PostMapping("/{blogId}/like")
-    public ResponseEntity<Like> likeBlog(@PathVariable Long blogId, HttpServletRequest request) {
+    public ResponseEntity<LikeDTO> likeBlog(@PathVariable Long blogId, HttpServletRequest request) {
         String token = extractToken(request);
         Like like = blogService.likeBlog(blogId, token);
-        return ResponseEntity.ok(like);
+        LikeDTO likeDTO = new LikeDTO(like.getUser().getFirstName(), like.getUser().getLastName());
+        return ResponseEntity.ok(likeDTO);
     }
 
     @DeleteMapping("/{blogId}/like")
@@ -42,10 +45,11 @@ public class BlogController {
     }
 
     @PostMapping("/{blogId}/comment")
-    public ResponseEntity<Comment> commentOnBlog(@PathVariable Long blogId, @RequestBody String content, HttpServletRequest request) {
+    public ResponseEntity<CommentDTO> commentOnBlog(@PathVariable Long blogId, @RequestBody String content, HttpServletRequest request) {
         String token = extractToken(request);
         Comment comment = blogService.commentOnBlog(blogId, content, token);
-        return ResponseEntity.ok(comment);
+        CommentDTO commentDTO = new CommentDTO(comment.getContent(), comment.getUser().getFirstName(), comment.getUser().getLastName());
+        return ResponseEntity.ok(commentDTO);
     }
 
     @GetMapping
@@ -61,14 +65,14 @@ public class BlogController {
     }
 
     @GetMapping("/{blogId}/comments")
-    public ResponseEntity<List<Comment>> getComments(@PathVariable Long blogId) {
-        List<Comment> comments = blogService.getComments(blogId);
+    public ResponseEntity<List<CommentDTO>> getComments(@PathVariable Long blogId) {
+        List<CommentDTO> comments = blogService.getComments(blogId);
         return ResponseEntity.ok(comments);
     }
 
     @GetMapping("/{blogId}/likes")
-    public ResponseEntity<List<Like>> getLikes(@PathVariable Long blogId) {
-        List<Like> likes = blogService.getLikes(blogId);
+    public ResponseEntity<List<LikeDTO>> getLikes(@PathVariable Long blogId) {
+        List<LikeDTO> likes = blogService.getLikes(blogId);
         return ResponseEntity.ok(likes);
     }
 
