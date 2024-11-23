@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.*;
 import com.emsi.blog.user.Blog;
 import com.emsi.blog.user.Comment;
 import com.emsi.blog.user.Like;
-import com.emsi.blog.user.User;
-import com.emsi.blog.user.UserRepository;
+// import com.emsi.blog.user.UserRepository;
 
-import java.security.Principal;
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.List;
 
 @RestController
@@ -18,25 +18,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BlogController {
     private final BlogService blogService;
-    private final UserRepository userRepository;
+    // private final UserRepository userRepository;
 
     @PostMapping
-    public ResponseEntity<Blog> createBlog(@RequestBody String content) {
-        Blog blog = blogService.createBlog(content);
+    public ResponseEntity<Blog> createBlog(@RequestBody String content, HttpServletRequest request) {
+        String token = extractToken(request);
+        Blog blog = blogService.createBlog(content, token);
         return ResponseEntity.ok(blog);
     }
 
     @PostMapping("/{blogId}/like")
-    public ResponseEntity<Like> likeBlog(@PathVariable Long blogId, Principal principal) {
-        User user = getUserFromPrincipal(principal);
-        Like like = blogService.likeBlog(blogId, user);
+    public ResponseEntity<Like> likeBlog(@PathVariable Long blogId, HttpServletRequest request) {
+        String token = extractToken(request);
+        Like like = blogService.likeBlog(blogId, token);
         return ResponseEntity.ok(like);
     }
 
     @PostMapping("/{blogId}/comment")
-    public ResponseEntity<Comment> commentOnBlog(@PathVariable Long blogId, @RequestBody String content, Principal principal) {
-        User user = getUserFromPrincipal(principal);
-        Comment comment = blogService.commentOnBlog(blogId, user, content);
+    public ResponseEntity<Comment> commentOnBlog(@PathVariable Long blogId, @RequestBody String content, HttpServletRequest request) {
+        String token = extractToken(request);
+        Comment comment = blogService.commentOnBlog(blogId, content, token);
         return ResponseEntity.ok(comment);
     }
 
@@ -64,8 +65,11 @@ public class BlogController {
         return ResponseEntity.ok(likes);
     }
 
-    private User getUserFromPrincipal(Principal principal) {
-        return userRepository.findByEmail(principal.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    private String extractToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        throw new RuntimeException("JWT Token is missing");
     }
 }

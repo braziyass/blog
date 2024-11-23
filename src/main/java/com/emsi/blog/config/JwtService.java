@@ -13,10 +13,14 @@ import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+// import org.springframework.beans.factory.annotation.Value;
 import io.jsonwebtoken.Claims;
 
 @Service
 public class JwtService {
+
+    // @Value("${jwt.secret}")
+    // private String secret;
 
     private static final String SECRET_KEY= "c982792bf5f30ed8be1b642d596d1459a85c79f2d3bf7e4fec6783e22e3acbbe";
     public String extractUsername(String token) {

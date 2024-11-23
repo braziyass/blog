@@ -2,13 +2,8 @@ package com.emsi.blog.demo;
 
 import lombok.RequiredArgsConstructor;
 
-import com.emsi.blog.user.Blog;
-import com.emsi.blog.user.BlogRepository;
-import com.emsi.blog.user.Comment;
-import com.emsi.blog.user.LikeRepository;
-import com.emsi.blog.user.User;
-import com.emsi.blog.user.CommentRepository;
-import com.emsi.blog.user.Like;
+import com.emsi.blog.config.JwtService;
+import com.emsi.blog.user.*;
 
 import org.springframework.stereotype.Service;
 
@@ -20,17 +15,22 @@ public class BlogService {
     private final BlogRepository blogRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
 
-    public Blog createBlog(String content) {
+    public Blog createBlog(String content, String token) {
+        User user = getUserFromToken(token);
         Blog blog = Blog.builder()
                 .content(content)
                 .numberLikes(0)
                 .numberComments(0)
+                .user(user)
                 .build();
         return blogRepository.save(blog);
     }
 
-    public Like likeBlog(Long blogId, User user) {
+    public Like likeBlog(Long blogId, String token) {
+        User user = getUserFromToken(token);
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
         Like like = Like.builder()
                 .blog(blog)
@@ -41,7 +41,8 @@ public class BlogService {
         return likeRepository.save(like);
     }
 
-    public Comment commentOnBlog(Long blogId, User user, String content) {
+    public Comment commentOnBlog(Long blogId, String content, String token) {
+        User user = getUserFromToken(token);
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
         Comment comment = Comment.builder()
                 .blog(blog)
@@ -67,5 +68,13 @@ public class BlogService {
         return blogRepository.findAll();
     }
 
+    public Blog getBlogById(Long blogId) {
+        return blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+    }
+
+    private User getUserFromToken(String token) {
+        String email = jwtService.extractUsername(token);
+        return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+    }
     
 }

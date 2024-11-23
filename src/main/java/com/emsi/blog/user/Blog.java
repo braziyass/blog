@@ -26,6 +26,10 @@ public class Blog {
     @Column(name = "number_comments")
     private int numberComments;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Comment> comments;
