@@ -32,6 +32,11 @@ public class BlogService {
     public Like likeBlog(Long blogId, String token) {
         User user = getUserFromToken(token);
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+
+        if (likeRepository.existsByBlogAndUser(blog, user)) {
+            throw new RuntimeException("User has already liked this post");
+        }
+
         Like like = Like.builder()
                 .blog(blog)
                 .user(user)
@@ -39,6 +44,18 @@ public class BlogService {
         blog.setNumberLikes(blog.getNumberLikes() + 1);
         blogRepository.save(blog);
         return likeRepository.save(like);
+    }
+
+    public void unlikeBlog(Long blogId, String token) {
+        User user = getUserFromToken(token);
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+
+        Like like = likeRepository.findByBlogAndUser(blog, user)
+                .orElseThrow(() -> new RuntimeException("Like not found"));
+
+        likeRepository.delete(like);
+        blog.setNumberLikes(blog.getNumberLikes() - 1);
+        blogRepository.save(blog);
     }
 
     public Comment commentOnBlog(Long blogId, String content, String token) {

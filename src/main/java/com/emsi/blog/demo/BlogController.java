@@ -34,6 +34,13 @@ public class BlogController {
         return ResponseEntity.ok(like);
     }
 
+    @DeleteMapping("/{blogId}/like")
+    public ResponseEntity<Void> unlikeBlog(@PathVariable Long blogId, HttpServletRequest request) {
+        String token = extractToken(request);
+        blogService.unlikeBlog(blogId, token);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{blogId}/comment")
     public ResponseEntity<Comment> commentOnBlog(@PathVariable Long blogId, @RequestBody String content, HttpServletRequest request) {
         String token = extractToken(request);
