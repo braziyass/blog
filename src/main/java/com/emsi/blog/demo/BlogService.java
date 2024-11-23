@@ -3,6 +3,7 @@ package com.emsi.blog.demo;
 import lombok.RequiredArgsConstructor;
 
 import com.emsi.blog.config.JwtService;
+import com.emsi.blog.dto.BlogDTO;
 import com.emsi.blog.dto.CommentDTO;
 import com.emsi.blog.dto.LikeDTO;
 import com.emsi.blog.user.*;
@@ -21,7 +22,7 @@ public class BlogService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
-    public Blog createBlog(String content, String token) {
+    public BlogDTO createBlog(String content, String token) {
         User user = getUserFromToken(token);
         Blog blog = Blog.builder()
                 .content(content)
@@ -29,7 +30,8 @@ public class BlogService {
                 .numberComments(0)
                 .user(user)
                 .build();
-        return blogRepository.save(blog);
+        blogRepository.save(blog);
+        return toBlogDTO(blog);
     }
 
     public Like likeBlog(Long blogId, String token) {
@@ -88,12 +90,55 @@ public class BlogService {
                 .collect(Collectors.toList());
     }
 
-    public List<Blog> getAllBlogs() {
-        return blogRepository.findAll();
+    public List<BlogDTO> getAllBlogs() {
+        return blogRepository.findAll().stream()
+                .map(blog -> new BlogDTO(
+                        blog.getContent(),
+                        blog.getUser().getFirstName(),
+                        blog.getUser().getLastName(),
+                        blog.getNumberLikes(),
+                        blog.getNumberComments(),
+                        blog.getComments().stream()
+                                .map(comment -> new CommentDTO(comment.getContent(), comment.getUser().getFirstName(), comment.getUser().getLastName()))
+                                .collect(Collectors.toList()),
+                        blog.getLikes().stream()
+                                .map(like -> new LikeDTO(like.getUser().getFirstName(), like.getUser().getLastName()))
+                                .collect(Collectors.toList())
+                ))
+                .collect(Collectors.toList());
     }
 
-    public Blog getBlogById(Long blogId) {
-        return blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+    public BlogDTO getBlogById(Long blogId) {
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+        return new BlogDTO(
+                blog.getContent(),
+                blog.getUser().getFirstName(),
+                blog.getUser().getLastName(),
+                blog.getNumberLikes(),
+                blog.getNumberComments(),
+                blog.getComments().stream()
+                        .map(comment -> new CommentDTO(comment.getContent(), comment.getUser().getFirstName(), comment.getUser().getLastName()))
+                        .collect(Collectors.toList()),
+                blog.getLikes().stream()
+                        .map(like -> new LikeDTO(like.getUser().getFirstName(), like.getUser().getLastName()))
+                        .collect(Collectors.toList())
+        );
+    }
+
+    private BlogDTO toBlogDTO(Blog blog) {
+        return new BlogDTO(
+                blog.getContent(),
+                blog.getUser().getFirstName(),
+                blog.getUser().getLastName(),
+                blog.getNumberLikes(),
+                blog.getNumberComments(),
+                blog.getComments().stream()
+                        .map(comment -> new CommentDTO(comment.getContent(), comment.getUser().getFirstName(), comment.getUser().getLastName()))
+                        .collect(Collectors.toList()),
+                blog.getLikes().stream()
+                        .map(like -> new LikeDTO(like.getUser().getFirstName(), like.getUser().getLastName()))
+                        .collect(Collectors.toList())
+        );
     }
 
     private User getUserFromToken(String token) {

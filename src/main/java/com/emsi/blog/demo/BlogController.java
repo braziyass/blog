@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.emsi.blog.dto.BlogDTO;
 import com.emsi.blog.dto.CommentDTO;
 import com.emsi.blog.dto.LikeDTO;
-import com.emsi.blog.user.Blog;
 import com.emsi.blog.user.Comment;
 import com.emsi.blog.user.Like;
 // import com.emsi.blog.user.UserRepository;
@@ -23,10 +23,10 @@ public class BlogController {
     // private final UserRepository userRepository;
 
     @PostMapping
-    public ResponseEntity<Blog> createBlog(@RequestBody String content, HttpServletRequest request) {
+    public ResponseEntity<BlogDTO> createBlog(@RequestBody String content, HttpServletRequest request) {
         String token = extractToken(request);
-        Blog blog = blogService.createBlog(content, token);
-        return ResponseEntity.ok(blog);
+        BlogDTO blogDTO = blogService.createBlog(content, token);
+        return ResponseEntity.ok(blogDTO);
     }
 
     @PostMapping("/{blogId}/like")
@@ -53,14 +53,14 @@ public class BlogController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Blog>> getAllBlogs() {
-        List<Blog> blogs = blogService.getAllBlogs();
+    public ResponseEntity<List<BlogDTO>> getAllBlogs() {
+        List<BlogDTO> blogs = blogService.getAllBlogs();
         return ResponseEntity.ok(blogs);
     }
 
     @GetMapping("/{blogId}")
-    public ResponseEntity<Blog> getBlogById(@PathVariable Long blogId) {
-        Blog blog = blogService.getBlogById(blogId);
+    public ResponseEntity<BlogDTO> getBlogById(@PathVariable Long blogId) {
+        BlogDTO blog = blogService.getBlogById(blogId);
         return ResponseEntity.ok(blog);
     }
 
