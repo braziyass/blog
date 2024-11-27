@@ -11,6 +11,7 @@ import com.emsi.blog.user.*;
 
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -162,12 +163,12 @@ public class BlogService {
                 blog.getUser().getLastName(),
                 blog.getNumberLikes(),
                 blog.getNumberComments(),
-                blog.getComments().stream()
+                blog.getComments() != null ? blog.getComments().stream()
                         .map(comment -> new CommentDTO(comment.getContent(), comment.getUser().getFirstName(), comment.getUser().getLastName()))
-                        .collect(Collectors.toList()),
-                blog.getLikes().stream()
+                        .collect(Collectors.toList()) : new ArrayList<>(),
+                blog.getLikes() != null ? blog.getLikes().stream()
                         .map(like -> new LikeDTO(like.getUser().getFirstName(), like.getUser().getLastName()))
-                        .collect(Collectors.toList())
+                        .collect(Collectors.toList()) : new ArrayList<>()
         );
     }
 

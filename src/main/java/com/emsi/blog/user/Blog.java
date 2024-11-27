@@ -3,6 +3,7 @@ package com.emsi.blog.user;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,9 +35,9 @@ public class Blog {
 
     @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private List<Like> likes;
+    private List<Like> likes = new ArrayList<>();
 }

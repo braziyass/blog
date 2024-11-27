@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.OneToMany;
@@ -29,6 +30,8 @@ public class User implements UserDetails {
     private Integer id;
     private String firstName;
     private String lastName;
+
+    @Column(name="email", unique= true)
     private String email;
     private String password;
     @Enumerated(jakarta.persistence.EnumType.STRING)

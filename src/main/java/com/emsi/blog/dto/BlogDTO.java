@@ -20,5 +20,4 @@ public class BlogDTO {
     private List<CommentDTO> comments;
     private List<LikeDTO> likes;
 
-    
 }
