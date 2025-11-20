@@ -2,11 +2,15 @@ package com.emsi.blog.demo;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hibernate.sql.Update;
+// import org.hibernate.sql.Update;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import com.emsi.blog.auth.AuthenticationResponse;
+// import com.emsi.blog.auth.AuthenticationResponse;
 import com.emsi.blog.dto.BlogDTO;
 import com.emsi.blog.dto.CommentDTO;
 import com.emsi.blog.dto.LikeDTO;
@@ -130,6 +134,24 @@ public class BlogController {
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
-        throw new RuntimeException("JWT Token is missing");
+        throw new UnauthenticatedException("JWT Token is missing");
+    }
+}
+
+// package-private exception used to signal missing authentication
+class UnauthenticatedException extends RuntimeException {
+    public UnauthenticatedException(String message) {
+        super(message);
+    }
+}
+
+// Global handler that redirects unauthenticated requests to the authenticate endpoint
+@ControllerAdvice
+class GlobalExceptionHandler {
+    @ExceptionHandler(UnauthenticatedException.class)
+    public ResponseEntity<Void> handleUnauthenticated(UnauthenticatedException ex) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Location", "/api/auth/authenticate");
+        return new ResponseEntity<>(headers, HttpStatus.FOUND); // 302 redirect
     }
 }
