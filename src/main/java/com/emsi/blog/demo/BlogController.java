@@ -1,12 +1,16 @@
 package com.emsi.blog.demo;
 
 import lombok.RequiredArgsConstructor;
+
+import org.hibernate.sql.Update;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.emsi.blog.auth.AuthenticationResponse;
 import com.emsi.blog.dto.BlogDTO;
 import com.emsi.blog.dto.CommentDTO;
 import com.emsi.blog.dto.LikeDTO;
+import com.emsi.blog.dto.UpdatedUserDTO;
 import com.emsi.blog.dto.UserDTO;
 import com.emsi.blog.user.Comment;
 import com.emsi.blog.user.Like;
@@ -15,6 +19,7 @@ import com.emsi.blog.user.Like;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/blogs")
@@ -96,6 +101,28 @@ public class BlogController {
         String token = extractToken(request);
         UserDTO userDTO = blogService.getUserProfile(token);
         return ResponseEntity.ok(userDTO);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UpdatedUserDTO> updateProfile(@RequestBody UserDTO userDTO, HttpServletRequest request) {
+        String token = extractToken(request);
+        UpdatedUserDTO updatedUser = blogService.updateUserProfile(userDTO, token);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @GetMapping("/{userId}/blog")
+    public ResponseEntity<List<BlogDTO>> getBlogsByUserId(@PathVariable Integer userId) {
+        List<BlogDTO> blogs = blogService.getBlogsByUserId(userId);
+        return ResponseEntity.ok(blogs);
+        
+    }
+    
+
+    @GetMapping("/my-blogs")
+    public ResponseEntity<List<BlogDTO>> getMyBlogs(HttpServletRequest request) {
+        String token = extractToken(request);
+        List<BlogDTO> myBlogs = blogService.getMyBlogs(token);
+        return ResponseEntity.ok(myBlogs);
     }
 
     private String extractToken(HttpServletRequest request) {

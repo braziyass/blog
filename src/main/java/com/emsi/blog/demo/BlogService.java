@@ -2,10 +2,12 @@ package com.emsi.blog.demo;
 
 import lombok.RequiredArgsConstructor;
 
+import com.emsi.blog.auth.AuthenticationResponse;
 import com.emsi.blog.config.JwtService;
 import com.emsi.blog.dto.BlogDTO;
 import com.emsi.blog.dto.CommentDTO;
 import com.emsi.blog.dto.LikeDTO;
+import com.emsi.blog.dto.UpdatedUserDTO;
 import com.emsi.blog.dto.UserDTO;
 import com.emsi.blog.user.*;
 
@@ -176,5 +178,59 @@ public class BlogService {
         String email = jwtService.extractUsername(token);
         return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
     }
+
+    public List<BlogDTO> getMyBlogs(String token) {
+        User user = getUserFromToken(token);
+        return blogRepository.findAllByUser(user).stream()
+                .map(blog -> new BlogDTO(
+                        blog.getContent(),
+                        blog.getUser().getFirstName(),
+                        blog.getUser().getLastName(),
+                        blog.getNumberLikes(),
+                        blog.getNumberComments(),
+                        blog.getComments().stream()
+                                .map(comment -> new CommentDTO(comment.getContent(), comment.getUser().getFirstName(), comment.getUser().getLastName()))
+                                .collect(Collectors.toList()),
+                        blog.getLikes().stream()
+                                .map(like -> new LikeDTO(like.getUser().getFirstName(), like.getUser().getLastName()))
+                                .collect(Collectors.toList())
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public List<BlogDTO> getBlogsByUserId(Integer userId) {
+        User userById = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        return blogRepository.findAllByUser(userById).stream()
+                .map(blog -> new BlogDTO(
+                        blog.getContent(),
+                        blog.getUser().getFirstName(),
+                        blog.getUser().getLastName(),
+                        blog.getNumberLikes(),
+                        blog.getNumberComments(),
+                        blog.getComments().stream()
+                                .map(comment -> new CommentDTO(comment.getContent(), comment.getUser().getFirstName(), comment.getUser().getLastName()))
+                                .collect(Collectors.toList()),
+                        blog.getLikes().stream()
+                                .map(like -> new LikeDTO(like.getUser().getFirstName(), like.getUser().getLastName()))
+                                .collect(Collectors.toList())
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public UpdatedUserDTO updateUserProfile(UserDTO userDTO, String token) {
+        User user = getUserFromToken(token);
+        user.setFirstName(userDTO.getFirstName());
+        user.setLastName(userDTO.getLastName());
+        user.setEmail(userDTO.getEmail());
+        userRepository.save(user);
+
+        String jwtToken = jwtService.generateToken(user);
+        return new UpdatedUserDTO(
+            user.getFirstName(),
+            user.getLastName(),
+            user.getEmail(),
+            jwtToken
+        );
+    }
+    }
     
-}

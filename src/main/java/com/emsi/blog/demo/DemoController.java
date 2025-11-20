@@ -11,6 +11,6 @@ public class DemoController {
 
     @GetMapping
     public ResponseEntity<String> get() {
-        return ResponseEntity.ok("Hello from demo controller");
+        return ResponseEntity.ok("The jwt is working!");
     }
 }
