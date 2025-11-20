@@ -24,7 +24,7 @@ spring:
     # Use the Mailtrap example MAIL FROM for envelope-from and From header
     from: hello@demomailtrap.co
     # optional From display name used by EmailService
-    from-name: "Magic Elves"
+    from-name: "Brazi yassine"
     test-connection: true          # validate SMTP on startup
     properties:
       mail:
