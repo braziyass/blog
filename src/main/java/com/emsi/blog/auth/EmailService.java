@@ -21,7 +21,7 @@ public class EmailService {
     private String mailFrom;
 
     // optional display name for the From header (fallback)
-    @Value("${spring.mail.from.name:Magic Elves}")
+    @Value("${spring.mail.from.name:Brazi yassine}")
     private String mailFromName;
 
     /**
