@@ -28,6 +28,8 @@ Welcome to the Blog Application! This project is built using Spring Boot and JWT
 - **Delete Blog Post**: `DELETE /api/blogs/{blogId}`
 - **Get All Blog Posts**: `GET /api/blogs`
 - **Get Blog Post by ID**: `GET /api/blogs/{blogId}`
+- **Get Blogs by User ID**: `GET /api/blogs/{userId}/blog`
+- **Get My Blogs**: `GET /api/blogs/my-blogs` (requires Authorization header)
 
 ### Likes
 
@@ -43,6 +45,9 @@ Welcome to the Blog Application! This project is built using Spring Boot and JWT
 ### Profile
 
 - **Get User Profile**: `GET /api/blogs/profile`
+- **Update User Profile**: `PUT /api/blogs/profile`
+  - Request body: UserDTO (firstName, lastName, email)
+  - Response: UpdatedUserDTO (firstName, lastName, email, token)
 
 ## Data Transfer Objects (DTOs)
 
@@ -98,6 +103,20 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private String email;
+}
+```
+
+### UpdatedUserDTO
+
+```java
+@Data
+@NorBuilder
+@AllArgsConstructor
+public class UpdatedUserDTO {
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String token; // JWT token returned after profile update
 }
 ```
 
