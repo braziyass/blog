@@ -37,6 +37,13 @@ public class User implements UserDetails {
     @Enumerated(jakarta.persistence.EnumType.STRING)
     private Role role;
 
+    @Column(name = "verification_token")
+    private String verificationToken;
+
+    // ensure DB column is created with a default (prevents "contains null values" when adding to existing table)
+    @Column(name = "verified", nullable = false, columnDefinition = "boolean default false")
+    private boolean verified = false;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Like> likes;
@@ -77,7 +84,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return verified;
     }
 
 

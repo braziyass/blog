@@ -42,8 +42,10 @@ public class SecurityConfiguration {
             
             // Configure authorization rules
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/api/blogs/**").permitAll() // allow public reads
+                // make auth endpoints public and permit OPTIONS (CORS preflight)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll() // auth endpoints public
+                .requestMatchers(HttpMethod.GET, "/api/blogs/**").permitAll() // allow public reads
                  .anyRequest().authenticated())
             
             // Ensure unauthenticated requests are handled by our entry point (returns 401/redirect)

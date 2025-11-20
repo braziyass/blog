@@ -13,6 +13,7 @@ Welcome to the Blog Application! This project is built using Spring Boot and JWT
 - **Comment on Blog Posts**: Users can comment on blog posts.
 - **View Blog Posts**: Users can view all blog posts along with likes and comments.
 - **View Profile**: Users can view their profile information.
+- **Email verification**: New accounts receive a verification email (Mailtrap used for testing). Users must verify their account before obtaining a JWT.
 
 ## Endpoints
 
@@ -20,6 +21,10 @@ Welcome to the Blog Application! This project is built using Spring Boot and JWT
 
 - **Register**: `/auth/register`
 - **Login**: `/auth/login`
+- Note: Endpoints are implemented under `/api/auth` in the application:
+  - Register: POST `/api/auth/register` — creates account, generates a verification token, saves it to the user and sends a verification email. Returns 201 Created with an informational message (if email sending fails the account is still created).
+  - Verify: GET `/api/auth/verify?token=<verification-token>` — verifies the account and returns a JWT on success.
+  - Authenticate: POST `/api/auth/authenticate` — if the account is not yet verified this returns 403 with a message instructing verification; after verification returns a JWT.
 
 ### Blog Posts
 
@@ -149,6 +154,20 @@ public class UpdatedUserDTO {
 - **Lombok**: For reducing boilerplate code.
 - **Hibernate**: For ORM (Object-Relational Mapping).
 - **PostgreSQL**: As the database.
+
+## Configuration
+
+- Mail / Verification settings
+  - Configure Mailtrap SMTP in `src/main/resources/application.yml` or via environment variables:
+    - spring.mail.username = `api` (Mailtrap live)
+    - spring.mail.password = your Mailtrap API token (use an env var, e.g. `MAILTRAP_PASSWORD`)
+    - spring.mail.from = `hello@demomailtrap.co` (use the sender Mailtrap recommends)
+  - Example environment approach (recommended):
+    export MAILTRAP_PASSWORD="your-token"
+    and in application.yml: `spring.mail.password: ${MAILTRAP_PASSWORD}`
+  - Behaviour:
+    - POST /api/auth/register will create the user and attempt to send the verification email. If sending fails the API still returns a 201 with a message and the user record is stored (so you can resend later).
+    - Use the verification link from Mailtrap inbox (or the token stored on the user record) to call GET /api/auth/verify?token=... — the endpoint verifies the account and returns a JWT you can use for protected endpoints.
 
 ## Contributing
 
