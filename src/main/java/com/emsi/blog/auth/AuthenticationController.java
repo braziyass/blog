@@ -39,7 +39,8 @@ public class AuthenticationController {
         @RequestBody AuthenticationRequest request) {
             AuthenticationResponse resp = service.authenticate(request);
             if (resp.getToken() == null) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(resp);
+                // return 401 so client receives the service message (e.g., "Wrong credentials")
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(resp);
             }
             return ResponseEntity.ok(resp);
     }

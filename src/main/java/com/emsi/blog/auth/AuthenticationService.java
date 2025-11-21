@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
+import org.springframework.security.core.AuthenticationException;
 
 @Service
 @RequiredArgsConstructor
@@ -61,19 +62,34 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        // load user first to check verification state
-        User user = repository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        // If user is not found, return neutral wrong-credentials response
+        var optionalUser = repository.findByEmail(request.getEmail());
+        if (optionalUser.isEmpty()) {
+            return AuthenticationResponse.builder()
+                    .token(null)
+                    .message("Wrong credentials")
+                    .build();
+        }
+
+        User user = optionalUser.get();
 
         if (!user.isVerified()) {
-            // return a response instructing the client to verify instead of throwing
+            // keep informative message for unverified accounts
             return AuthenticationResponse.builder()
                     .token(null)
                     .message("Account not verified. Please verify your account (check email) or call /api/auth/verify?token=<token>).")
                     .build();
         }
 
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        } catch (AuthenticationException ex) {
+            // don't reveal details, return neutral wrong-credentials response
+            return AuthenticationResponse.builder()
+                    .token(null)
+                    .message("Wrong credentials")
+                    .build();
+        }
 
         String jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
