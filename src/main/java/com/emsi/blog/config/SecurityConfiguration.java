@@ -35,7 +35,6 @@ public class SecurityConfiguration {
         http
             // Disable CSRF
             .csrf(csrf -> csrf.disable())
-            
             // Configure session management
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -44,7 +43,7 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(auth -> auth
                 // make auth endpoints public and permit OPTIONS (CORS preflight)
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll() // auth endpoints public
+                .requestMatchers("/api/auth/**","/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs.yaml", "/swagger-ui/index.html").permitAll() // auth endpoints public
                 .requestMatchers(HttpMethod.GET, "/api/blogs/**").permitAll() // allow public reads
                  .anyRequest().authenticated())
             
