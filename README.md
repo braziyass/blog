@@ -14,38 +14,38 @@ Welcome to the Blog Application! This project is built using Spring Boot and JWT
 - **View Blog Posts**: Users can view all blog posts along with likes and comments.
 - **View Profile**: Users can view their profile information.
 - **Email verification**: New accounts receive a verification email (Mailtrap used for testing). Users must verify their account before obtaining a JWT.
+- **Opaque public IDs for blogs**: All blog resource URLs use a non-sequential publicId (UUID) instead of database numeric IDs for security.
+- **API documentation**: Swagger UI available at `/swagger-ui.html` and `/swagger-ui/index.html`.
 
 ## Endpoints
 
 ### Authentication
 
-- **Register**: `/auth/register`
-- **Login**: `/auth/login`
-- Note: Endpoints are implemented under `/api/auth` in the application:
-  - Register: POST `/api/auth/register` — creates account, generates a verification token, saves it to the user and sends a verification email. Returns 201 Created with an informational message (if email sending fails the account is still created).
-  - Verify: GET `/api/auth/verify?token=<verification-token>` — verifies the account and returns a JWT on success.
-  - Authenticate: POST `/api/auth/authenticate` — if the account is not yet verified this returns 403 with a message instructing verification; after verification returns a JWT.
+- **Register**: `/api/auth/register`
+- **Login**: `/api/auth/authenticate`
+- **Verify**: `/api/auth/verify?token=<verification-token>`
+- Note: Endpoints are implemented under `/api/auth` in the application.
 
 ### Blog Posts
 
 - **Create Blog Post**: `POST /api/blogs`
-- **Update Blog Post**: `PUT /api/blogs/{blogId}`
-- **Delete Blog Post**: `DELETE /api/blogs/{blogId}`
+- **Update Blog Post**: `PUT /api/blogs/{publicId}`
+- **Delete Blog Post**: `DELETE /api/blogs/{publicId}`
 - **Get All Blog Posts**: `GET /api/blogs`
-- **Get Blog Post by ID**: `GET /api/blogs/{blogId}`
+- **Get Blog Post by Public ID**: `GET /api/blogs/{publicId}`
 - **Get Blogs by User ID**: `GET /api/blogs/{userId}/blog`
 - **Get My Blogs**: `GET /api/blogs/my-blogs` (requires Authorization header)
 
 ### Likes
 
-- **Like Blog Post**: `POST /api/blogs/{blogId}/like`
-- **Unlike Blog Post**: `DELETE /api/blogs/{blogId}/like`
-- **Get Likes for Blog Post**: `GET /api/blogs/{blogId}/likes`
+- **Like Blog Post**: `POST /api/blogs/{publicId}/like`
+- **Unlike Blog Post**: `DELETE /api/blogs/{publicId}/like`
+- **Get Likes for Blog Post**: `GET /api/blogs/{publicId}/likes`
 
 ### Comments
 
-- **Comment on Blog Post**: `POST /api/blogs/{blogId}/comment`
-- **Get Comments for Blog Post**: `GET /api/blogs/{blogId}/comments`
+- **Comment on Blog Post**: `POST /api/blogs/{publicId}/comment`
+- **Get Comments for Blog Post**: `GET /api/blogs/{publicId}/comments`
 
 ### Profile
 
@@ -53,6 +53,11 @@ Welcome to the Blog Application! This project is built using Spring Boot and JWT
 - **Update User Profile**: `PUT /api/blogs/profile`
   - Request body: UserDTO (firstName, lastName, email)
   - Response: UpdatedUserDTO (firstName, lastName, email, token)
+
+### Documentation
+
+- **Swagger UI**: `GET /swagger-ui.html` or `/swagger-ui/index.html`
+- **OpenAPI JSON**: `GET /v3/api-docs`
 
 ## Data Transfer Objects (DTOs)
 
