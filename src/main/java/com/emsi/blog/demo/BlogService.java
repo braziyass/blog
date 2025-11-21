@@ -232,5 +232,68 @@ public class BlogService {
             jwtToken
         );
     }
+
+    // helper: find blog entity by publicId
+    private Blog findBlogByPublicId(String publicId) {
+        return blogRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new RuntimeException("Blog not found"));
     }
-    
+
+    // Public APIs using publicId (opaque id in URLs)
+    public BlogDTO getBlogByPublicId(String publicId) {
+        Blog blog = findBlogByPublicId(publicId);
+        return toBlogDTO(blog);
+    }
+
+    public BlogDTO updateBlogByPublicId(String publicId, String content, String token) {
+        User user = getUserFromToken(token);
+        Blog blog = findBlogByPublicId(publicId);
+        if (!blog.getUser().equals(user)) {
+            throw new RuntimeException("You are not authorized to update this blog");
+        }
+        blog.setContent(content);
+        blogRepository.save(blog);
+        return toBlogDTO(blog);
+    }
+
+    public void deleteBlogByPublicId(String publicId, String token) {
+        User user = getUserFromToken(token);
+        Blog blog = findBlogByPublicId(publicId);
+        if (!blog.getUser().equals(user)) {
+            throw new RuntimeException("You are not authorized to delete this blog");
+        }
+        blogRepository.delete(blog);
+    }
+
+    public Like likeBlogByPublicId(String publicId, String token) {
+        User user = getUserFromToken(token);
+        Blog blog = findBlogByPublicId(publicId);
+        if (likeRepository.existsByBlogAndUser(blog, user)) {
+            throw new RuntimeException("User has already liked this post");
+        }
+        Like like = Like.builder().blog(blog).user(user).build();
+        blog.setNumberLikes(blog.getNumberLikes() + 1);
+        blogRepository.save(blog);
+        return likeRepository.save(like);
+    }
+
+    public void unlikeBlogByPublicId(String publicId, String token) {
+        User user = getUserFromToken(token);
+        Blog blog = findBlogByPublicId(publicId);
+        Like like = likeRepository.findByBlogAndUser(blog, user)
+                .orElseThrow(() -> new RuntimeException("Like not found"));
+        likeRepository.delete(like);
+        blog.setNumberLikes(blog.getNumberLikes() - 1);
+        blogRepository.save(blog);
+    }
+
+    public Comment commentOnBlogByPublicId(String publicId, String content, String token) {
+        User user = getUserFromToken(token);
+        Blog blog = findBlogByPublicId(publicId);
+        Comment comment = Comment.builder().blog(blog).user(user).content(content).build();
+        blog.setNumberComments(blog.getNumberComments() + 1);
+        blogRepository.save(blog);
+        return commentRepository.save(comment);
+    }
+}
+

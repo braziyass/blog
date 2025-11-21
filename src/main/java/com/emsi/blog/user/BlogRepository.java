@@ -9,5 +9,6 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
 
     Optional<Blog> findByUser(User user);
     List<Blog> findAllByUser(User user);
+    Optional<Blog> findByPublicId(String publicId);
 }
 

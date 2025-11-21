@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -19,6 +20,17 @@ public class Blog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // public opaque id used in URLs (non-sequential, hard to guess)
+    @Column(name = "public_id", unique = true, updatable = false, nullable = false)
+    private String publicId;
+
+    @PrePersist
+    public void ensurePublicId() {
+        if (this.publicId == null || this.publicId.isBlank()) {
+            this.publicId = UUID.randomUUID().toString();
+        }
+    }
 
     private String content;
 

@@ -39,39 +39,39 @@ public class BlogController {
         return ResponseEntity.ok(blogDTO);
     }
 
-    @PutMapping("/{blogId}")
-    public ResponseEntity<BlogDTO> updateBlog(@PathVariable Long blogId, @RequestBody String content, HttpServletRequest request) {
+    @PutMapping("/{publicId}")
+    public ResponseEntity<BlogDTO> updateBlog(@PathVariable("publicId") String publicId, @RequestBody String content, HttpServletRequest request) {
         String token = extractToken(request);
-        BlogDTO blogDTO = blogService.updateBlog(blogId, content, token);
+        BlogDTO blogDTO = blogService.updateBlogByPublicId(publicId, content, token);
         return ResponseEntity.ok(blogDTO);
     }
 
-    @DeleteMapping("/{blogId}")
-    public ResponseEntity<Void> deleteBlog(@PathVariable Long blogId, HttpServletRequest request) {
+    @DeleteMapping("/{publicId}")
+    public ResponseEntity<Void> deleteBlog(@PathVariable("publicId") String publicId, HttpServletRequest request) {
         String token = extractToken(request);
-        blogService.deleteBlog(blogId, token);
+        blogService.deleteBlogByPublicId(publicId, token);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{blogId}/like")
-    public ResponseEntity<LikeDTO> likeBlog(@PathVariable Long blogId, HttpServletRequest request) {
+    @PostMapping("/{publicId}/like")
+    public ResponseEntity<LikeDTO> likeBlog(@PathVariable("publicId") String publicId, HttpServletRequest request) {
         String token = extractToken(request);
-        Like like = blogService.likeBlog(blogId, token);
+        Like like = blogService.likeBlogByPublicId(publicId, token);
         LikeDTO likeDTO = new LikeDTO(like.getUser().getFirstName(), like.getUser().getLastName());
         return ResponseEntity.ok(likeDTO);
     }
 
-    @DeleteMapping("/{blogId}/like")
-    public ResponseEntity<Void> unlikeBlog(@PathVariable Long blogId, HttpServletRequest request) {
+    @DeleteMapping("/{publicId}/like")
+    public ResponseEntity<Void> unlikeBlog(@PathVariable("publicId") String publicId, HttpServletRequest request) {
         String token = extractToken(request);
-        blogService.unlikeBlog(blogId, token);
+        blogService.unlikeBlogByPublicId(publicId, token);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{blogId}/comment")
-    public ResponseEntity<CommentDTO> commentOnBlog(@PathVariable Long blogId, @RequestBody String content, HttpServletRequest request) {
+    @PostMapping("/{publicId}/comment")
+    public ResponseEntity<CommentDTO> commentOnBlog(@PathVariable("publicId") String publicId, @RequestBody String content, HttpServletRequest request) {
         String token = extractToken(request);
-        Comment comment = blogService.commentOnBlog(blogId, content, token);
+        Comment comment = blogService.commentOnBlogByPublicId(publicId, content, token);
         CommentDTO commentDTO = new CommentDTO(comment.getContent(), comment.getUser().getFirstName(), comment.getUser().getLastName());
         return ResponseEntity.ok(commentDTO);
     }
@@ -82,9 +82,9 @@ public class BlogController {
         return ResponseEntity.ok(blogs);
     }
 
-    @GetMapping("/{blogId}")
-    public ResponseEntity<BlogDTO> getBlogById(@PathVariable Long blogId) {
-        BlogDTO blog = blogService.getBlogById(blogId);
+    @GetMapping("/{publicId}")
+    public ResponseEntity<BlogDTO> getBlogByPublicId(@PathVariable("publicId") String publicId) {
+        BlogDTO blog = blogService.getBlogByPublicId(publicId);
         return ResponseEntity.ok(blog);
     }
 
