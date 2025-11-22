@@ -23,6 +23,7 @@ import com.emsi.blog.user.Like;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 
 @RestController
@@ -88,15 +89,27 @@ public class BlogController {
         return ResponseEntity.ok(blog);
     }
 
-    @GetMapping("/{blogId}/comments")
-    public ResponseEntity<List<CommentDTO>> getComments(@PathVariable Long blogId) {
-        List<CommentDTO> comments = blogService.getComments(blogId);
+    // changed: accept string identifier (numeric id or publicId)
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<List<CommentDTO>> getComments(@PathVariable String id) {
+        List<CommentDTO> comments;
+        if (isNumeric(id)) {
+            comments = blogService.getComments(Long.parseLong(id));
+        } else {
+            comments = blogService.getCommentsByPublicId(id);
+        }
         return ResponseEntity.ok(comments);
     }
 
-    @GetMapping("/{blogId}/likes")
-    public ResponseEntity<List<LikeDTO>> getLikes(@PathVariable Long blogId) {
-        List<LikeDTO> likes = blogService.getLikes(blogId);
+    // changed: accept string identifier (numeric id or publicId)
+    @GetMapping("/{id}/likes")
+    public ResponseEntity<List<LikeDTO>> getLikes(@PathVariable String id) {
+        List<LikeDTO> likes;
+        if (isNumeric(id)) {
+            likes = blogService.getLikes(Long.parseLong(id));
+        } else {
+            likes = blogService.getLikesByPublicId(id);
+        }
         return ResponseEntity.ok(likes);
     }
 
@@ -135,6 +148,12 @@ public class BlogController {
             return bearerToken.substring(7);
         }
         throw new UnauthenticatedException("JWT Token is missing");
+    }
+
+    // helper to detect numeric id
+    private static final Pattern NUMERIC = Pattern.compile("^\\d+$");
+    private boolean isNumeric(String s) {
+        return s != null && NUMERIC.matcher(s).matches();
     }
 }
 

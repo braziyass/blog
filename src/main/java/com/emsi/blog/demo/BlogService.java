@@ -13,6 +13,11 @@ import com.emsi.blog.user.*;
 
 import org.springframework.stereotype.Service;
 
+// caching imports
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +31,10 @@ public class BlogService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
+    @Caching(evict = {
+        @CacheEvict(value = "blogs", allEntries = true),
+        @CacheEvict(value = "myBlogs", key = "#token")
+    })
     public BlogDTO createBlog(String content, String token) {
         User user = getUserFromToken(token);
         Blog blog = Blog.builder()
@@ -38,6 +47,11 @@ public class BlogService {
         return toBlogDTO(blog);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "blog", key = "#blogId"),
+        @CacheEvict(value = "blogs", allEntries = true),
+        @CacheEvict(value = "myBlogs", key = "#token")
+    })
     public BlogDTO updateBlog(Long blogId, String content, String token) {
         User user = getUserFromToken(token);
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
@@ -51,6 +65,13 @@ public class BlogService {
         return toBlogDTO(blog);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "blog", key = "#blogId"),
+        @CacheEvict(value = "blogs", allEntries = true),
+        @CacheEvict(value = "myBlogs", key = "#token"),
+        @CacheEvict(value = "comments", allEntries = true),
+        @CacheEvict(value = "likes", allEntries = true)
+    })
     public void deleteBlog(Long blogId, String token) {
         User user = getUserFromToken(token);
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
@@ -62,6 +83,12 @@ public class BlogService {
         blogRepository.delete(blog);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "blog", key = "#blogId"),
+        @CacheEvict(value = "blogs", allEntries = true),
+        @CacheEvict(value = "likes", key = "#blogId"),
+        @CacheEvict(value = "myBlogs", key = "#token")
+    })
     public Like likeBlog(Long blogId, String token) {
         User user = getUserFromToken(token);
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
@@ -79,6 +106,12 @@ public class BlogService {
         return likeRepository.save(like);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "blog", key = "#blogId"),
+        @CacheEvict(value = "blogs", allEntries = true),
+        @CacheEvict(value = "likes", key = "#blogId"),
+        @CacheEvict(value = "myBlogs", key = "#token")
+    })
     public void unlikeBlog(Long blogId, String token) {
         User user = getUserFromToken(token);
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
@@ -91,6 +124,12 @@ public class BlogService {
         blogRepository.save(blog);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "blog", key = "#blogId"),
+        @CacheEvict(value = "blogs", allEntries = true),
+        @CacheEvict(value = "comments", key = "#blogId"),
+        @CacheEvict(value = "myBlogs", key = "#token")
+    })
     public Comment commentOnBlog(Long blogId, String content, String token) {
         User user = getUserFromToken(token);
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
@@ -104,6 +143,7 @@ public class BlogService {
         return commentRepository.save(comment);
     }
 
+    @Cacheable(value = "comments", key = "#blogId")
     public List<CommentDTO> getComments(Long blogId) {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
         return blog.getComments().stream()
@@ -111,6 +151,16 @@ public class BlogService {
                 .collect(Collectors.toList());
     }
 
+    // new: cache comments by publicId
+    @Cacheable(value = "comments", key = "#publicId")
+    public List<CommentDTO> getCommentsByPublicId(String publicId) {
+        Blog blog = findBlogByPublicId(publicId);
+        return blog.getComments().stream()
+                .map(comment -> new CommentDTO(comment.getContent(), comment.getUser().getFirstName(), comment.getUser().getLastName()))
+                .collect(Collectors.toList());
+    }
+
+    @Cacheable(value = "likes", key = "#blogId")
     public List<LikeDTO> getLikes(Long blogId) {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
         return blog.getLikes().stream()
@@ -118,6 +168,16 @@ public class BlogService {
                 .collect(Collectors.toList());
     }
 
+    // new: cache likes by publicId
+    @Cacheable(value = "likes", key = "#publicId")
+    public List<LikeDTO> getLikesByPublicId(String publicId) {
+        Blog blog = findBlogByPublicId(publicId);
+        return blog.getLikes().stream()
+                .map(like -> new LikeDTO(like.getUser().getFirstName(), like.getUser().getLastName()))
+                .collect(Collectors.toList());
+    }
+
+    @Cacheable("blogs")
     public List<BlogDTO> getAllBlogs() {
         return blogRepository.findAll().stream()
                 .map(blog -> new BlogDTO(
@@ -136,6 +196,8 @@ public class BlogService {
                 .collect(Collectors.toList());
     }
 
+    // cache blog by numeric id (existing)
+    @Cacheable(value = "blog", key = "#blogId")
     public BlogDTO getBlogById(Long blogId) {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
         return new BlogDTO(
@@ -153,6 +215,14 @@ public class BlogService {
         );
     }
 
+    // new: cache blog by publicId
+    @Cacheable(value = "blog", key = "#publicId")
+    public BlogDTO getBlogByPublicId(String publicId) {
+        Blog blog = findBlogByPublicId(publicId);
+        return toBlogDTO(blog);
+    }
+
+    @Cacheable(value = "userProfile", key = "#token")
     public UserDTO getUserProfile(String token) {
         User user = getUserFromToken(token);
         return new UserDTO(user.getFirstName(), user.getLastName(), user.getEmail());
@@ -179,6 +249,7 @@ public class BlogService {
         return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    @Cacheable(value = "myBlogs", key = "#token")
     public List<BlogDTO> getMyBlogs(String token) {
         User user = getUserFromToken(token);
         return blogRepository.findAllByUser(user).stream()
@@ -240,11 +311,6 @@ public class BlogService {
     }
 
     // Public APIs using publicId (opaque id in URLs)
-    public BlogDTO getBlogByPublicId(String publicId) {
-        Blog blog = findBlogByPublicId(publicId);
-        return toBlogDTO(blog);
-    }
-
     public BlogDTO updateBlogByPublicId(String publicId, String content, String token) {
         User user = getUserFromToken(token);
         Blog blog = findBlogByPublicId(publicId);

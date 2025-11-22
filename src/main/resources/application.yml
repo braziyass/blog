@@ -15,17 +15,15 @@ spring:
     database: POSTGRESQL
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
-# Mail configuration for Mailtrap
+  # Mail configuration for Mailtrap
   mail:
     host: live.smtp.mailtrap.io
     port: 587
     username: api
     password: "1b77139623339e174c6fd4039580abcb"
-    # Use the Mailtrap example MAIL FROM for envelope-from and From header
     from: hello@demomailtrap.co
-    # optional From display name used by EmailService
     from-name: "Brazi yassine"
-    test-connection: true          # validate SMTP on startup
+    test-connection: true
     properties:
       mail:
         debug: true
@@ -36,5 +34,9 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
-          # envelope MAIL FROM used by SMTP server (must be an allowed sender)
           from: hello@demomailtrap.co
+
+  # Redis configuration: use full URI (supports username:password in the URI)
+  redis:
+    # full URI form — keep quoted because password contains special characters
+    url: "redis://default:SbXUlGaNJqadOuQGo9qC09ZEzovL2u3y@redis-17673.crce202.eu-west-3-1.ec2.cloud.redislabs.com:17673"
