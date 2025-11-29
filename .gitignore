@@ -46,3 +46,4 @@ application-*.yml
 # Environment files
 .env
 .env.local
+src/main/resources/application.properties

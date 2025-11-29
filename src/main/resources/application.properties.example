@@ -1,0 +1,9 @@
+# AWS S3 Configuration (use environment variables)
+aws.region=${AWS_REGION:eu-north-1}
+aws.s3.bucket-name=${AWS_S3_BUCKET:amzn-s3-bucket-blog}
+aws.accessKeyId=${AWS_ACCESS_KEY_ID}
+aws.secretKey=${AWS_SECRET_ACCESS_KEY}
+
+# File upload settings
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
