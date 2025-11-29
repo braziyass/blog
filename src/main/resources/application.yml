@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/blog
-    username: postgres
-    password: yassine2004
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/blog}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:yassine2004}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -20,7 +20,7 @@ spring:
     host: live.smtp.mailtrap.io
     port: 587
     username: api
-    password: "a8936a743484cedf4a88fa815b7d8033"
+    password: ${SPRING_MAIL_PASSWORD:a8936a743484cedf4a88fa815b7d8033}
     from: no-reply@braziyas.dev
     from-name: "Brazi yassine"
     test-connection: true
@@ -38,5 +38,10 @@ spring:
 
   # Redis configuration: use full URI (supports username:password in the URI)
   redis:
-    # full URI form — keep quoted because password contains special characters
-    url: "redis://default:SbXUlGaNJqadOuQGo9qC09ZEzovL2u3y@redis-17673.crce202.eu-west-3-1.ec2.cloud.redislabs.com:17673"
+    # Prefer host/port provided by docker-compose; URL optional via env
+    host: ${SPRING_REDIS_HOST:localhost}
+    port: ${SPRING_REDIS_PORT:6379}
+    password: ${SPRING_REDIS_PASSWORD:}
+    # Optional full URL if you want to override host/port (leave empty in Docker)
+    url: ${SPRING_REDIS_URL:}
+    timeout: 60000
