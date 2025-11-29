@@ -20,8 +20,8 @@ spring:
     host: live.smtp.mailtrap.io
     port: 587
     username: api
-    password: "1b77139623339e174c6fd4039580abcb"
-    from: hello@demomailtrap.co
+    password: "a8936a743484cedf4a88fa815b7d8033"
+    from: no-reply@braziyas.dev
     from-name: "Brazi yassine"
     test-connection: true
     properties:
@@ -34,7 +34,7 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
-          from: hello@demomailtrap.co
+          from: no-reply@braziyas.dev
 
   # Redis configuration: use full URI (supports username:password in the URI)
   redis:

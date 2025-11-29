@@ -17,7 +17,7 @@ public class EmailService {
     private final JavaMailSender mailSender;
 
     // configurable From address (fallback to Mailtrap example sender)
-    @Value("${spring.mail.from:hello@demomailtrap.co}")
+    @Value("${spring.mail.from:no-reply@braziyas.dev}")
     private String mailFrom;
 
     // optional display name for the From header (fallback)

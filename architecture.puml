@@ -1,0 +1,89 @@
+@startuml
+title Blog Application - Component Diagram
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+actor Client
+
+node "Spring Boot (8080)" {
+  package "Security" {
+    [SecurityConfig]
+    [JWTFilter]
+    [AuthEntryPoint]
+    [TokenService]
+  }
+
+  package "Controllers" {
+    [AuthController]
+    [BlogController]
+    [ProfileController]
+    [FileController]
+  }
+
+  package "Services" {
+    [AuthService]
+    [BlogService]
+    [UserService]
+    [FileService]
+    [EmailService]
+    [CacheService]
+  }
+
+  package "Repositories" {
+    [UserRepository]
+    [BlogRepository]
+    [CommentRepository]
+    [LikeRepository]
+    [VerificationTokenRepository]
+  }
+
+  package "Config" {
+    [RedisConfig]
+    [S3Config]
+    [JacksonConfig]
+  }
+}
+
+database "PostgreSQL" as PG
+cloud "Redis" as Redis
+cloud "AWS S3" as S3
+cloud "SMTP" as SMTP
+
+Client --> [JWTFilter] : HTTP
+[JWTFilter] --> [AuthEntryPoint] : 401/302 on fail
+[JWTFilter] --> [AuthController]
+[JWTFilter] --> [BlogController]
+[JWTFilter] --> [ProfileController]
+[JWTFilter] --> [FileController]
+
+[AuthController] --> [AuthService]
+[BlogController] --> [BlogService]
+[ProfileController] --> [UserService]
+[FileController] --> [FileService]
+
+[AuthService] --> [UserRepository]
+[AuthService] --> [VerificationTokenRepository]
+[AuthService] --> [TokenService] : JWT
+[AuthService] --> SMTP : verification email
+
+[BlogService] --> [BlogRepository]
+[BlogService] --> [CommentRepository]
+[BlogService] --> [LikeRepository]
+[BlogService] --> Redis : cache blogs
+[BlogService] --> PG : blogs data
+
+[UserService] --> [UserRepository]
+[UserService] --> Redis : cache user
+[UserService] --> PG : users data
+[UserService] --> [TokenService] : refresh JWT
+
+[FileService] --> S3 : profile pictures
+[FileService] --> [UserRepository] : update picture URL
+
+[RedisConfig] --> Redis
+[S3Config] --> S3
+[JacksonConfig] --> [Controllers]
+
+@enduml
