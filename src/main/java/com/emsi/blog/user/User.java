@@ -44,6 +44,9 @@ public class User implements UserDetails {
     @Column(name = "verified", nullable = false, columnDefinition = "boolean default false")
     private boolean verified = false;
 
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Like> likes;

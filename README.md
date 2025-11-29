@@ -13,6 +13,7 @@ Welcome to the Blog Application! This project is built using Spring Boot and JWT
 - **Comment on Blog Posts**: Users can comment on blog posts.
 - **View Blog Posts**: Users can view all blog posts along with likes and comments.
 - **View Profile**: Users can view their profile information.
+- **Profile Pictures**: Users can upload profile pictures to AWS S3.
 - **Email verification**: New accounts receive a verification email (Mailtrap used for testing). Users must verify their account before obtaining a JWT.
 - **Opaque public IDs for blogs**: All blog resource URLs use a non-sequential publicId (UUID) instead of database numeric IDs for security.
 - **API documentation**: Swagger UI available at `/swagger-ui.html` and `/swagger-ui/index.html`.
@@ -22,38 +23,20 @@ Welcome to the Blog Application! This project is built using Spring Boot and JWT
 
 The application follows a modular configuration approach:
 
-- **AuthenticationConfig**: Authentication beans (UserDetailsService, AuthenticationProvider, AuthenticationManager, PasswordEncoder)
-- **SecurityConfig**: HTTP security configuration, security filter chain, and CORS settings
+- **SecurityConfig**: Complete security configuration including authentication beans (UserDetailsService, AuthenticationProvider, PasswordEncoder), HTTP security rules, JWT filter, and CORS settings
 - **CustomAuthenticationEntryPoint**: Handles unauthenticated requests with smart detection for browser vs API clients
-- **JwtAuthenticationFilter**: JWT token validation filter that intercepts requests
 - **RedisConfig**: Redis connection and caching configuration with support for Redis URL parsing
 - **JacksonConfig**: Shared ObjectMapper configuration for JSON serialization
+- **S3Config**: AWS S3 client configuration for file storage
 - **ApplicationConfig**: Application-wide configuration (currently empty, ready for future beans)
-
-### Architecture Diagrams
-
-Visual documentation of the application is available in PlantUML format in the `/docs` directory:
-
-- **architecture-overview.puml**: Complete system architecture showing all layers and components
-- **authentication-flow.puml**: Detailed authentication, registration, and verification flows
-- **blog-operations-flow.puml**: Blog CRUD operations, likes, and comments with caching
-- **security-flow.puml**: JWT validation and security filter chain
-- **caching-strategy.puml**: Redis caching patterns and cache invalidation
-- **database-schema.puml**: Entity-relationship diagram of the database
-
-To view these diagrams:
-1. Install a PlantUML viewer in your IDE (VS Code, IntelliJ, etc.)
-2. Or use online tools like http://www.plantuml.com/plantuml/
-3. Or generate PNG/SVG using PlantUML CLI
 
 ## Endpoints
 
 ### Authentication
 
-- **Register**: `/api/auth/register`
-- **Login**: `/api/auth/authenticate`
-- **Verify**: `/api/auth/verify?token=<verification-token>`
-- Note: Endpoints are implemented under `/api/auth` in the application.
+- **Register**: `POST /api/auth/register`
+- **Login**: `POST /api/auth/authenticate`
+- **Verify**: `GET /api/auth/verify?token=<verification-token>`
 
 ### Blog Posts
 
@@ -83,10 +66,153 @@ To view these diagrams:
   - Request body: UserDTO (firstName, lastName, email)
   - Response: UpdatedUserDTO (firstName, lastName, email, token)
 
+### File Upload
+
+- **Upload General File**: `POST /api/files/upload`
+- **Upload Profile Picture**: `POST /api/files/profile-picture` (requires authentication)
+- **Delete File**: `DELETE /api/files/delete?fileName={fileName}`
+
 ### Documentation
 
 - **Swagger UI**: `GET /swagger-ui.html` or `/swagger-ui/index.html`
 - **OpenAPI JSON**: `GET /v3/api-docs`
+
+## API Usage Examples
+
+### 1. Register a New User
+
+```http
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+```
+
+**Response:**
+```json
+{
+  "token": null,
+  "message": "Verification email sent. Please check your inbox."
+}
+```
+
+### 2. Verify Account
+
+```http
+GET http://localhost:8080/api/auth/verify?token=your-verification-token-from-email
+```
+
+**Response:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "message": "Account verified. Use this token to authenticate requests."
+}
+```
+
+### 3. Login
+
+```http
+POST http://localhost:8080/api/auth/authenticate
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+```
+
+**Response:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "message": "Authenticated"
+}
+```
+
+### 4. Upload Profile Picture
+
+**Using Postman/Insomnia:**
+```http
+POST http://localhost:8080/api/files/profile-picture
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: multipart/form-data
+
+file: [select an image file]
+```
+
+**Response:**
+```json
+{
+  "url": "https://amzn-s3-bucket-blog.s3.eu-north-1.amazonaws.com/profile-pictures/1/uuid-filename.jpg",
+  "message": "Profile picture updated successfully",
+  "userId": 1
+}
+```
+
+**Constraints:**
+- Only image files allowed (image/jpeg, image/png, image/gif, etc.)
+- Maximum file size: 5MB
+- Requires JWT authentication
+- Automatically deletes old profile picture when uploading a new one
+
+### 5. Create a Blog Post
+
+```http
+POST http://localhost:8080/api/blogs
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "content": "This is my first blog post!"
+}
+```
+
+### 6. Get All Blogs
+
+```http
+GET http://localhost:8080/api/blogs
+```
+
+### 7. Like a Blog Post
+
+```http
+POST http://localhost:8080/api/blogs/{publicId}/like
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### 8. Comment on a Blog Post
+
+```http
+POST http://localhost:8080/api/blogs/{publicId}/comment
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "content": "Great post!"
+}
+```
+
+### 9. Get User Profile
+
+```http
+GET http://localhost:8080/api/blogs/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**Response:**
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com"
+}
+```
 
 ## Data Transfer Objects (DTOs)
 
@@ -182,6 +308,97 @@ public class UpdatedUserDTO {
 
 ## Configuration
 
+### AWS S3 Configuration
+
+**Setup Instructions:**
+
+1. **Create S3 Bucket** (if not exists):
+   - Log into AWS Console: https://console.aws.amazon.com/s3
+   - Create bucket: `amzn-s3-bucket-blog`
+   - Region: `Europe (Stockholm) eu-north-1`
+
+2. **Add IAM Permissions**:
+   - Go to IAM → Users → blog-application
+   - Add permissions → Attach policies
+   - Use this custom policy:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:DeleteObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::amzn-s3-bucket-blog",
+                "arn:aws:s3:::amzn-s3-bucket-blog/*"
+            ]
+        }
+    ]
+}
+```
+
+3. **Configure Application**:
+
+AWS credentials are in `application.properties`:
+- Region: `eu-north-1`
+- Bucket: `amzn-s3-bucket-blog`
+- Access credentials stored directly (learning project only)
+
+**⚠️ Security Note:** Never commit AWS credentials to Git in production.
+
+**Profile Picture Storage:**
+- Files are stored at: `s3://amzn-s3-bucket-blog/profile-pictures/{userId}/{uuid}-{filename}`
+- Each user can have one profile picture (old ones are automatically deleted)
+- Supported formats: JPEG, PNG, GIF, and other image formats
+- Maximum file size: 5MB
+
+**Testing with REST Client (VS Code Extension):**
+
+Create a file `test-api.http`:
+
+```http
+### Register
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "User",
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Verify (replace token with actual token from email)
+GET http://localhost:8080/api/auth/verify?token=your-token-here
+
+### Login
+POST http://localhost:8080/api/auth/authenticate
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Upload Profile Picture (replace token)
+POST http://localhost:8080/api/files/profile-picture
+Authorization: Bearer your-jwt-token-here
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="profile.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/your/image.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+```
+
 ### Redis Configuration
 
 Configure Redis connection in `application.yml` or via environment variables:
@@ -222,6 +439,7 @@ The Redis configuration supports:
 - **Spring Boot**: For building the application.
 - **Spring Security**: For authentication and authorization.
 - **JWT**: For secure authentication tokens.
+- **AWS S3**: For file storage (profile pictures).
 - **Lombok**: For reducing boilerplate code.
 - **Hibernate**: For ORM (Object-Relational Mapping).
 - **PostgreSQL**: As the database.

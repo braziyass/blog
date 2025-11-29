@@ -31,3 +31,18 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Sensitive configuration files
+application.properties
+application.yml
+application-*.properties
+application-*.yml
+
+# AWS credentials
+.aws/
+*.pem
+*.key
+
+# Environment files
+.env
+.env.local

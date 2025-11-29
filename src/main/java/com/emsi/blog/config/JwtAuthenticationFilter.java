@@ -41,6 +41,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (path != null && (path.equals("/api/auth") || path.startsWith("/api/auth/") || path.startsWith("/api/auth"))) {
             return true;
         }
+        // Comment out the line below if you want file uploads to require authentication
+        // if (path != null && path.startsWith("/api/files")) {
+        //     return true;
+        // }
         return false;
     }
 
