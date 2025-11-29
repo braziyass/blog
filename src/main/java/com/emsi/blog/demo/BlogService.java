@@ -2,7 +2,7 @@ package com.emsi.blog.demo;
 
 import lombok.RequiredArgsConstructor;
 
-import com.emsi.blog.auth.AuthenticationResponse;
+// import com.emsi.blog.auth.AuthenticationResponse;
 import com.emsi.blog.config.JwtService;
 import com.emsi.blog.dto.BlogDTO;
 import com.emsi.blog.dto.CommentDTO;

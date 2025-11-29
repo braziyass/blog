@@ -16,6 +16,35 @@ Welcome to the Blog Application! This project is built using Spring Boot and JWT
 - **Email verification**: New accounts receive a verification email (Mailtrap used for testing). Users must verify their account before obtaining a JWT.
 - **Opaque public IDs for blogs**: All blog resource URLs use a non-sequential publicId (UUID) instead of database numeric IDs for security.
 - **API documentation**: Swagger UI available at `/swagger-ui.html` and `/swagger-ui/index.html`.
+- **Redis caching**: Blog data is cached using Redis for improved performance.
+
+## Project Structure
+
+The application follows a modular configuration approach:
+
+- **AuthenticationConfig**: Authentication beans (UserDetailsService, AuthenticationProvider, AuthenticationManager, PasswordEncoder)
+- **SecurityConfig**: HTTP security configuration, security filter chain, and CORS settings
+- **CustomAuthenticationEntryPoint**: Handles unauthenticated requests with smart detection for browser vs API clients
+- **JwtAuthenticationFilter**: JWT token validation filter that intercepts requests
+- **RedisConfig**: Redis connection and caching configuration with support for Redis URL parsing
+- **JacksonConfig**: Shared ObjectMapper configuration for JSON serialization
+- **ApplicationConfig**: Application-wide configuration (currently empty, ready for future beans)
+
+### Architecture Diagrams
+
+Visual documentation of the application is available in PlantUML format in the `/docs` directory:
+
+- **architecture-overview.puml**: Complete system architecture showing all layers and components
+- **authentication-flow.puml**: Detailed authentication, registration, and verification flows
+- **blog-operations-flow.puml**: Blog CRUD operations, likes, and comments with caching
+- **security-flow.puml**: JWT validation and security filter chain
+- **caching-strategy.puml**: Redis caching patterns and cache invalidation
+- **database-schema.puml**: Entity-relationship diagram of the database
+
+To view these diagrams:
+1. Install a PlantUML viewer in your IDE (VS Code, IntelliJ, etc.)
+2. Or use online tools like http://www.plantuml.com/plantuml/
+3. Or generate PNG/SVG using PlantUML CLI
 
 ## Endpoints
 
@@ -151,18 +180,32 @@ public class UpdatedUserDTO {
 4. **Access the application**:
    Open your browser and go to `http://localhost:8080`.
 
-## Technologies Used
-
-- **Spring Boot**: For building the application.
-- **Spring Security**: For authentication and authorization.
-- **JWT**: For secure authentication tokens.
-- **Lombok**: For reducing boilerplate code.
-- **Hibernate**: For ORM (Object-Relational Mapping).
-- **PostgreSQL**: As the database.
-
 ## Configuration
 
-- Mail / Verification settings
+### Redis Configuration
+
+Configure Redis connection in `application.yml` or via environment variables:
+
+```yaml
+spring:
+  redis:
+    url: redis://localhost:6379  # Full URL (optional, overrides host/port)
+    host: localhost              # Redis host
+    port: 6379                   # Redis port
+    password: your-password      # Redis password (optional)
+    username: default            # Redis username for ACL (optional)
+    ssl: false                   # Enable SSL (true for rediss://)
+    cache:
+      ttl: 10                    # Cache TTL in minutes
+```
+
+The Redis configuration supports:
+- Full Redis URLs (redis:// or rediss:// for SSL)
+- Username/password authentication
+- SSL/TLS connections
+- Configurable cache TTL
+
+### Mail / Verification settings
   - Configure Mailtrap SMTP in `src/main/resources/application.yml` or via environment variables:
     - spring.mail.username = `api` (Mailtrap live)
     - spring.mail.password = your Mailtrap API token (use an env var, e.g. `MAILTRAP_PASSWORD`)
@@ -173,6 +216,17 @@ public class UpdatedUserDTO {
   - Behaviour:
     - POST /api/auth/register will create the user and attempt to send the verification email. If sending fails the API still returns a 201 with a message and the user record is stored (so you can resend later).
     - Use the verification link from Mailtrap inbox (or the token stored on the user record) to call GET /api/auth/verify?token=... — the endpoint verifies the account and returns a JWT you can use for protected endpoints.
+
+## Technologies Used
+
+- **Spring Boot**: For building the application.
+- **Spring Security**: For authentication and authorization.
+- **JWT**: For secure authentication tokens.
+- **Lombok**: For reducing boilerplate code.
+- **Hibernate**: For ORM (Object-Relational Mapping).
+- **PostgreSQL**: As the database.
+- **Redis**: For caching.
+- **Lettuce**: Redis client for Spring Data Redis.
 
 ## Contributing
 
