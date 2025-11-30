@@ -23,7 +23,7 @@ spring:
     password: ${SPRING_MAIL_PASSWORD:a8936a743484cedf4a88fa815b7d8033}
     from: no-reply@braziyas.dev
     from-name: "Brazi yassine"
-    test-connection: true
+    test-connection: false
     properties:
       mail:
         debug: true
@@ -45,3 +45,7 @@ spring:
     # Optional full URL if you want to override host/port (leave empty in Docker)
     url: ${SPRING_REDIS_URL:}
     timeout: 60000
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mail.MailSenderValidatorAutoConfiguration
