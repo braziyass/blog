@@ -17,25 +17,12 @@ spring:
 
   # Mail configuration for Mailtrap
   mail:
-    host: ${SPRING_MAIL_HOST:live.smtp.mailtrap.io}
-    port: ${SPRING_MAIL_PORT:587}
-    username: ${SPRING_MAIL_USERNAME:api}
     password: ${SPRING_MAIL_PASSWORD}
     from: ${SPRING_MAIL_FROM:no-reply@braziyas.dev}
     from-name: ${SPRING_MAIL_FROM_NAME:Brazi yassine}
-    test-connection: false
     enabled: ${SPRING_MAIL_ENABLED:true}
-    properties:
-      mail:
-        debug: ${SPRING_MAIL_DEBUG:false}
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
-          from: ${SPRING_MAIL_FROM:no-reply@braziyas.dev}
+    api:
+      url: ${SPRING_MAIL_API_URL:https://send.api.mailtrap.io/api/send}
 
   # Redis configuration: use full URI (supports username:password in the URI)
   redis:

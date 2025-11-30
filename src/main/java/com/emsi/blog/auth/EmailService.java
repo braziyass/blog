@@ -1,31 +1,37 @@
 package com.emsi.blog.auth;
 
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
-import org.springframework.mail.MailException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import lombok.RequiredArgsConstructor;
 
 import com.emsi.blog.user.User;
 
+import java.util.Map;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
-
-    // configurable From address (fallback to Mailtrap example sender)
     @Value("${spring.mail.from:no-reply@braziyas.dev}")
     private String mailFrom;
 
-    // optional display name for the From header (fallback)
     @Value("${spring.mail.from.name:Brazi yassine}")
     private String mailFromName;
 
     @Value("${spring.mail.enabled:true}")
     private boolean mailEnabled;
+
+    @Value("${spring.mail.password}")
+    private String mailtrapToken;
+
+    @Value("${spring.mail.api.url:https://send.api.mailtrap.io/api/send}")
+    private String mailtrapApiUrl;
+
+    private final WebClient.Builder webClientBuilder;
 
     /**
      * Send verification email. This method will NOT throw on Mail exceptions;
@@ -42,32 +48,43 @@ public class EmailService {
         String to = user.getEmail();
         String subject = "Please verify your account";
         String verifyUrl = "https://blog-oawu.onrender.com/api/auth/verify?token=" + token;
-        String body = "Hi " + user.getFirstName() + ",\n\n" +
-                "Please verify your account by clicking the link below:\n" +
-                verifyUrl + "\n\n" +
-                "If you did not sign up, ignore this email.\n\n" +
-                "Regards,\nBlog Team";
+        String htmlBody = String.format(
+            "<h2>Hi %s,</h2>" +
+            "<p>Please verify your account by clicking the button below:</p>" +
+            "<a href='%s' style='display:inline-block;padding:10px 20px;background-color:#007bff;color:white;text-decoration:none;border-radius:5px;'>Verify Account</a>" +
+            "<p>Or copy this link: <a href='%s'>%s</a></p>" +
+            "<p>If you did not sign up, ignore this email.</p>" +
+            "<p>Regards,<br/>Blog Team</p>",
+            user.getFirstName(), verifyUrl, verifyUrl, verifyUrl
+        );
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        // set a proper From header with display name and set Reply‑To
-        String fromHeader = String.format("%s <%s>", mailFromName, mailFrom);
-        message.setFrom(fromHeader);
-        message.setReplyTo(mailFrom);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(body);
+        Map<String, Object> emailRequest = Map.of(
+            "from", Map.of(
+                "email", mailFrom,
+                "name", mailFromName
+            ),
+            "to", List.of(Map.of("email", to)),
+            "subject", subject,
+            "html", htmlBody
+        );
 
         try {
-            mailSender.send(message);
-            System.out.println("Verification email queued/sent to " + to);
+            WebClient webClient = webClientBuilder
+                .baseUrl(mailtrapApiUrl)
+                .defaultHeader("Authorization", "Bearer " + mailtrapToken)
+                .defaultHeader("Content-Type", "application/json")
+                .build();
+
+            Mono<String> response = webClient.post()
+                .bodyValue(emailRequest)
+                .retrieve()
+                .bodyToMono(String.class);
+
+            response.block(); // blocking call for simplicity
+            System.out.println("✅ Verification email sent via Mailtrap API to " + to);
             return true;
-        } catch (MailException mex) {
-            // don't rethrow; log and let caller decide how to proceed
-            System.err.println("MailException sending verification email to " + to + ": " + mex.getMessage());
-            mex.printStackTrace();
-            return false;
         } catch (Exception ex) {
-            System.err.println("Unexpected error sending verification email to " + to + ": " + ex.getMessage());
+            System.err.println("❌ Error sending verification email to " + to + ": " + ex.getMessage());
             ex.printStackTrace();
             return false;
         }
