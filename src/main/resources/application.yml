@@ -24,6 +24,7 @@ spring:
     from: ${SPRING_MAIL_FROM:no-reply@braziyas.dev}
     from-name: ${SPRING_MAIL_FROM_NAME:Brazi yassine}
     test-connection: false
+    enabled: ${SPRING_MAIL_ENABLED:true}
     properties:
       mail:
         debug: ${SPRING_MAIL_DEBUG:false}

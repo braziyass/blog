@@ -24,14 +24,24 @@ public class EmailService {
     @Value("${spring.mail.from.name:Brazi yassine}")
     private String mailFromName;
 
+    @Value("${spring.mail.enabled:true}")
+    private boolean mailEnabled;
+
     /**
      * Send verification email. This method will NOT throw on Mail exceptions;
      * it logs and returns false so callers can continue (registration should not fail).
      */
     public boolean sendVerificationEmail(User user, String token) {
+        if (!mailEnabled) {
+            System.out.println("⚠️ Email disabled - skipping verification email for " + user.getEmail());
+            System.out.println("📧 Verification token: " + token);
+            System.out.println("🔗 Verify URL: https://blog-oawu.onrender.com/api/auth/verify?token=" + token);
+            return true;
+        }
+
         String to = user.getEmail();
         String subject = "Please verify your account";
-        String verifyUrl = "http://localhost:8080/api/auth/verify?token=" + token;
+        String verifyUrl = "https://blog-oawu.onrender.com/api/auth/verify?token=" + token;
         String body = "Hi " + user.getFirstName() + ",\n\n" +
                 "Please verify your account by clicking the link below:\n" +
                 verifyUrl + "\n\n" +
